@@ -150,8 +150,3 @@ def extract_pm_tests(script_lines):
         tests.append(current_test)
 
     return tests
-
-
-if __name__ == "__main__":
-    result = read_postman_collection('../data/test.json')
-    print(json.dumps(result, indent=4))
