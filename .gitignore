@@ -1,0 +1,83 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# macOS-specific metadata files
+*.swp
+*~.nib
+*.bak
+*.tmp
+
+# PyCharm IDE files
+.idea/
+*.iml
+
+# Python Bytecode and other Python files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+env/
+venv/
+ENV/
+VENV/
+env.bak/
+venv.bak/
+
+# Test outputs
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# pyenv
+.python-version
+
+# Jupyter Notebook files
+.ipynb_checkpoints
+
+# PEP 582; used by e.g. pdm
+__pypackages__/
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the binary
+*.manifest
+*.spec
+
+# distutils / setuptools
+*.egg-info/
+.installed.cfg
+*.egg
+.eggs/
+build/
+dist/
+
+# MyPy
+.mypy_cache/
+
+# Unit test / coverage reports
+htmlcov/
+.cache/
+.pytest_cache/
+
+# Additional directories to ignore
+out/
+
+# Other
+*.log
