@@ -16,6 +16,28 @@ To install the necessary dependencies, create a `requirements.txt` file as descr
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 ## Usage
+
+Run the script to select a conversion type and follow the prompts:
+
+```bash
+python main.py
+```
+
+You will be presented with the following conversion options:
+
+## Postman Collection -> JMX
+* JMX -> Postman Collection
+* Postman Collection -> K6 (unsupported feature, WIP)
+* K6 -> Postman Collection (unsupported feature, WIP)
+* JMX -> K6 (unsupported feature, WIP)
+* K6 -> JMX (unsupported feature, WIP)
+
+
+## Contributing
+Contributions are welcome! Please feel free to submit a pull request or open an issue for any suggestions or improvements.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
