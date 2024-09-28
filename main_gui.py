@@ -74,9 +74,19 @@ def create_gui():
     )
     convert_button.pack(pady=20)
 
+    creator_label = tk.Label(root, text="Created by: Mehmet Serhat Özdursun", font=("Arial", 10))
+    creator_label.pack(pady=5)
+    website_link = tk.Label(root, text="Website", fg="blue", cursor="hand2")
+    website_link.pack(pady=5)
+    website_link.bind("<Button-1>", lambda e: open_link("https://serhatozdursun.com/"))
+
     root.geometry("500x400")
     root.mainloop()
 
+
+def open_link(url):
+    import webbrowser
+    webbrowser.open(url)
 
 if __name__ == '__main__':
     create_gui()
