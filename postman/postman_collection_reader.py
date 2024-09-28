@@ -26,7 +26,7 @@ def read_postman_collection(file_path):
     generic_controllers = extract_generic_controllers(data.get("item", []))
 
     return {
-        "test_plan_name": test_plan_name,
+        "test_plan_name": test_plan_name.replace("&", "and"),
         "test_plan_comments": test_plan_comments,
         "test_fragment_controller": {
             "name": "Test Fragment",
@@ -46,7 +46,7 @@ def extract_generic_controllers(items, parent_id=None):
         if "item" in item:  # Indicates it's a folder-like structure (generic controller)
             controller = {
                 "id": controller_id,
-                "name": item.get("name", "Unnamed Controller"),
+                "name": item.get("name", "Unnamed Controller").replace("&", "and"),
                 "type": "generic_controller" if not parent_id else "child_generic_controller",
                 "parent": parent_id if parent_id else None,
                 "children": extract_generic_controllers(item.get("item", []), parent_id=controller_id)  # Recursively gather nested controllers

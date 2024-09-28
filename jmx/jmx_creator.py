@@ -94,13 +94,16 @@ def create_response_assertion(test_name, expected_status):
     """
 
 
-def create_jmx_file(postman_json_path, file_name):
+def create_jmx_file(source_file, jmx_file):
+    postman_json_path_final = ""
     current_file_dir = os.path.dirname(__file__)
-
-    # Get the parent directory
     parent_folder_path = os.path.abspath(os.path.join(current_file_dir, os.pardir))
+    if not os.path.exists(source_file):
+        # Get the parent directory
+        postman_json_path_final = os.path.join(parent_folder_path, "file_to_convert", f"{source_file}.json")
+    else:
+        postman_json_path_final = source_file
 
-    postman_json_path_final = os.path.join(parent_folder_path, "file_to_convert", f"{postman_json_path}.json")
     """Create a JMeter .jmx file based on the Postman collection."""
     try:
         data = read_postman_collection(postman_json_path_final)
@@ -139,8 +142,13 @@ def create_jmx_file(postman_json_path, file_name):
     </jmeterTestPlan>
     """
 
+    if 'jmx' in jmx_file:
+        output_path = os.path.abspath(os.path.join(jmx_file, os.pardir))
+        file_name = os.path.basename(jmx_file)
     # Write the JMX file
-    output_path = os.path.join(parent_folder_path, "out")
-    file_write(output_path, f"{file_name}.jmx", jmx_content)
+    else:
+        file_name = f"{jmx_file}.jmx"
+        output_path = os.path.join(parent_folder_path, "out")
+    file_write(output_path, file_name, jmx_content)
     GREEN_TEXT = '\033[92m'
     print(f'{GREEN_TEXT}JMeter .jmx file created at: {output_path}')
