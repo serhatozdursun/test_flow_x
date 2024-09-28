@@ -126,7 +126,7 @@ def create_jmx_file(source_file, jmx_file):
           <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
         </TestPlan>
         <hashTree>
-          <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="{data['test_fragment_controller']['name']}" enabled="false"/>
+          <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="{data['test_fragment_controller']['name']}" enabled="true"/>
           <hashTree>
     """
 
