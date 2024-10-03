@@ -13,7 +13,7 @@ def validate_postman_schema(data, schema_file_path='data/postman_schema.json'):
         # Validate the data against the schema
         validate(instance=data, schema=schema)
     except ValidationError as e:
-        raise Exception(f"Error: The provided file does not conform to the Postman Collection schema.")
+        raise Exception(f"Error: The provided file does not conform to the Postman Collection schema. \n {e}")
     except Exception as e:
         raise Exception(f"Error loading or validating schema: {e}")
 
