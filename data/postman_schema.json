@@ -1,0 +1,190 @@
+{
+    "title": "Root Schema",
+    "type": "object",
+    "required": [
+        "info",
+        "item"
+    ],
+    "properties": {
+        "info": {
+            "title": "The info Schema",
+            "type": "object",
+            "required": [
+                "_postman_id",
+                "name",
+                "schema",
+                "_exporter_id"
+            ],
+            "properties": {
+                "_postman_id": {
+                    "title": "The _postman_id Schema",
+                    "type": "string"
+                },
+                "name": {
+                    "title": "The name Schema",
+                    "type": "string"
+                },
+                "schema": {
+                    "title": "The schema Schema",
+                    "type": "string"
+                },
+                "_exporter_id": {
+                    "title": "The _exporter_id Schema",
+                    "type": "string"
+                }
+            }
+        },
+        "item": {
+            "title": "The item Schema",
+            "type": "array",
+            "items": {
+                "title": "A Schema",
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "title": "The name Schema",
+                        "type": "string"
+                    },
+                    "item": {
+                        "title": "The item Schema",
+                        "type": "array",
+                        "items": {
+                            "title": "A Schema",
+                            "type": "object",
+                            "required": [
+                                "name"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "title": "The name Schema",
+                                    "type": "string"
+                                },
+                                "request": {
+                                    "title": "The request Schema",
+                                    "type": "object",
+                                    "required": [
+                                        "method",
+                                        "url"
+                                    ],
+                                    "properties": {
+                                        "method": {
+                                            "title": "The method Schema",
+                                            "type": "string"
+                                        },
+                                        "header": {
+                                            "title": "The header Schema",
+                                            "type": "array",
+                                            "items": {
+                                                "title": "A Schema",
+                                                "type": "object",
+                                                "required": [
+                                                    "key",
+                                                    "value"
+                                                ],
+                                                "properties": {
+                                                    "key": {
+                                                        "title": "The key Schema",
+                                                        "type": "string"
+                                                    },
+                                                    "value": {
+                                                        "title": "The value Schema",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "body": {
+                                            "title": "The body Schema",
+                                            "type": "object",
+                                            "required": [
+                                                "mode",
+                                                "raw"
+                                            ],
+                                            "properties": {
+                                                "mode": {
+                                                    "title": "The mode Schema",
+                                                    "type": "string"
+                                                },
+                                                "raw": {
+                                                    "title": "The raw Schema",
+                                                    "type": "string"
+                                                },
+                                                "options": {
+                                                    "title": "The options Schema",
+                                                    "type": "object",
+                                                    "required": [
+                                                        "raw"
+                                                    ],
+                                                    "properties": {
+                                                        "raw": {
+                                                            "title": "The raw Schema",
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "language": {
+                                                                    "title": "The language Schema",
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "url": {
+                                            "title": "The url Schema",
+                                            "type": "object",
+                                            "required": [
+                                                "raw",
+                                                "protocol",
+                                                "host",
+                                                "path"
+                                            ],
+                                            "properties": {
+                                                "raw": {
+                                                    "title": "The raw Schema",
+                                                    "type": "string"
+                                                },
+                                                "protocol": {
+                                                    "title": "The protocol Schema",
+                                                    "type": "string"
+                                                },
+                                                "host": {
+                                                    "title": "The host Schema",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "title": "A Schema",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "path": {
+                                                    "title": "The path Schema",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "title": "A Schema",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "description": {
+                                            "title": "The description Schema",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "response": {
+                                    "title": "The response Schema",
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

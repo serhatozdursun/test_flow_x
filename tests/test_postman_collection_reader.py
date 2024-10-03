@@ -1,7 +1,7 @@
 import os
 import pytest
 from jsonschema import validate, ValidationError
-from postman.postman_collection_reader import (
+from postman.postman_json_reader import (
     read_postman_collection,
     extract_generic_controllers,
     extract_query_params,

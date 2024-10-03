@@ -2,6 +2,20 @@ import json
 import os
 import re
 from urllib.parse import urlparse, parse_qsl
+from jsonschema import validate, ValidationError
+from helper.file_utils import file_load  # Assuming this function exists and is imported correctly
+
+
+def validate_postman_schema(data, schema_file_path='data/postman_schema.json'):
+    try:
+        # Load schema from the file using file_load
+        schema = json.loads(file_load(schema_file_path))
+        # Validate the data against the schema
+        validate(instance=data, schema=schema)
+    except ValidationError as e:
+        raise Exception(f"Error: The provided file does not conform to the Postman Collection schema. \n {e}")
+    except Exception as e:
+        raise Exception(f"Error loading or validating schema: {e}")
 
 
 def read_postman_collection(file_path):
@@ -18,6 +32,9 @@ def read_postman_collection(file_path):
         print(f"Error: Failed to decode JSON - {e}")
     except Exception as e:
         print(f"Error: {e}")
+
+    #Validate the Postman collection against the schema
+    validate_postman_schema(data)
 
     info = data.get("info", {})
     test_plan_name = info["name"]
