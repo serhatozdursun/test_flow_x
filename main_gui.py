@@ -1,53 +1,66 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from jmx.jmx_creator import create_jmx_file
+from postman.postman_json_creator import create_postman_collection
+import webbrowser
+
+
+def handle_conversion(conversion_type, source_ext, source_desc, dest_ext, dest_desc, conversion_func):
+    """
+    Handles the file selection and conversion process for a given conversion type.
+
+    :param conversion_type: The selected conversion type.
+    :param source_ext: The file extension for the source file.
+    :param source_desc: The description for the source file type.
+    :param dest_ext: The file extension for the destination file.
+    :param dest_desc: The description for the destination file type.
+    :param conversion_func: The function to perform the conversion.
+    """
+    source_file = filedialog.askopenfilename(title=f"Select {source_desc} file",
+                                             filetypes=[(f"{source_desc} files", f"*.{source_ext}")])
+    if source_file:
+        destination_file = filedialog.asksaveasfilename(title=f"Save as {dest_desc} file",
+                                                        defaultextension=f".{dest_ext}",
+                                                        filetypes=[(f"{dest_desc} files", f"*.{dest_ext}")])
+        if destination_file:
+            conversion_func(source_file, destination_file)
+            messagebox.showinfo("Success", f"Conversion to {dest_desc} completed successfully!")
+        else:
+            messagebox.showwarning("Input required", f"Please provide a {dest_desc} file.")
+    else:
+        messagebox.showwarning("Input required", f"Please select a {source_desc} file.")
 
 
 def convert_files():
     conversion_type = conversion_var.get()
 
-    if conversion_type == '1':
-        # Prompt to select a Postman Collection file
-        source_file = filedialog.askopenfilename(title="Select Postman Collection JSON",
-                                                 filetypes=[("JSON files", "*.json")])
-        if source_file:
-            # Prompt to save as a JMX file
-            destination_file = filedialog.asksaveasfilename(title="Save as JMX file", defaultextension=".jmx",
-                                                            filetypes=[("JMX files", "*.jmx")])
-            if destination_file:
-                create_jmx_file(source_file, destination_file)
-                messagebox.showinfo("Success", "Conversion to JMX completed successfully!")
-        else:
-            messagebox.showwarning("Input required", "Please select a Postman Collection JSON file.")
+    conversion_mapping = {
+        '1': lambda: handle_conversion('1', 'json', 'Postman Collection JSON', 'jmx', 'JMX', create_jmx_file),
+        '2': lambda: handle_conversion('2', 'jmx', 'JMeter JMX', 'json', 'Postman Collection JSON',
+                                       create_postman_collection)
+    }
 
-    elif conversion_type == '2':
-        messagebox.showwarning("Feature not ready", "JMX to Postman Collection conversion is a WIP.")
+    unsupported_conversions = ['3', '4', '5', '6']
 
-    elif conversion_type == '3':
-        messagebox.showwarning("Feature not ready", "Postman Collection to K6 conversion is a WIP.")
-
-    elif conversion_type == '4':
-        messagebox.showwarning("Feature not ready", "K6 to Postman Collection conversion is a WIP.")
-
-    elif conversion_type == '5':
-        messagebox.showwarning("Feature not ready", "JMX to K6 conversion is a WIP.")
-
-    elif conversion_type == '6':
-        messagebox.showwarning("Feature not ready", "K6 to JMX conversion is a WIP.")
+    if conversion_type in conversion_mapping:
+        conversion_mapping[conversion_type]()
+    elif conversion_type in unsupported_conversions:
+        messagebox.showwarning("Feature not ready", "This feature is a WIP and currently unsupported.")
+    else:
+        messagebox.showerror("Error", "Invalid conversion type selected.")
 
 
 def create_gui():
     root = tk.Tk()
     root.title("Test Flow X Converter")
 
-    # Conversion options
     options = [
-        "1 -> Postman Collection -> JMX",
-        "2 -> JMX -> Postman Collection (unsupported feature, WIP)",
-        "3 -> Postman Collection -> K6 (unsupported feature, WIP)",
-        "4 -> K6 -> Postman Collection (unsupported feature, WIP)",
-        "5 -> JMX -> K6 (unsupported feature, WIP)",
-        "6 -> K6 -> JMX (unsupported feature, WIP)"
+        "1. Postman Collection => JMX",
+        "2. JMX => Postman Collection",
+        "3. Postman Collection => K6 (unsupported feature, WIP)",
+        "4. K6 => Postman Collection (unsupported feature, WIP)",
+        "5. JMX => K6 (unsupported feature, WIP)",
+        "6. K6 => JMX (unsupported feature, WIP)"
     ]
 
     tk.Label(root, text="Select Conversion Type", font=("Arial", 14)).pack(pady=10)
@@ -55,7 +68,7 @@ def create_gui():
     global conversion_var
     conversion_var = tk.StringVar(value="1")
 
-    # Radio buttons for conversion options
+    # Add radio buttons for conversion options
     for option in options:
         tk.Radiobutton(root, text=option, variable=conversion_var, value=option[0], font=("Arial", 12)).pack(anchor="w",
                                                                                                              padx=20)
@@ -65,17 +78,18 @@ def create_gui():
         text="Convert",
         command=convert_files,
         font=("Arial", 12),
-        bg="green",  # Set initial button background color
-        fg="black",  # Set initial text color
-        activebackground="lightgreen",  # Background color when clicked
-        activeforeground="black",  # Text color when clicked
-        highlightthickness=0,  # Remove highlight border
-        borderwidth=0  # Remove button border
+        bg="green",
+        fg="black",
+        activebackground="lightgreen",
+        activeforeground="black",
+        highlightthickness=0,
+        borderwidth=0
     )
     convert_button.pack(pady=20)
 
-    creator_label = tk.Label(root, text="Created by: Mehmet Serhat Özdursun", font=("Arial", 10))
-    creator_label.pack(pady=5)
+    # Additional GUI elements (creator label, website link)
+    tk.Label(root, text="Created by: Mehmet Serhat Özdursun", font=("Arial", 10)).pack(pady=5)
+
     website_link = tk.Label(root, text="Website", fg="blue", cursor="hand2")
     website_link.pack(pady=5)
     website_link.bind("<Button-1>", lambda e: open_link("https://serhatozdursun.com/"))
@@ -85,8 +99,8 @@ def create_gui():
 
 
 def open_link(url):
-    import webbrowser
     webbrowser.open(url)
+
 
 if __name__ == '__main__':
     create_gui()
