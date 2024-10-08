@@ -1,5 +1,5 @@
 from jmx.jmx_creator import create_jmx_file
-from postman.postman_json_creator import generate_postman_collection
+from postman.postman_json_creator import generate_postman_collection, save_json
 
 # ANSI escape codes for colored text
 YELLOW_TEXT = '\033[93m'
@@ -35,7 +35,8 @@ def convert_jmx_to_postman():
         "Enter the Jmeter Suite JMX file name (without .jmx extension) from the file_to_convert folder: ", ".jmx")
     destination_file = get_file_name(
         "Enter the desired Postman Collection JSON file name (without .json extension) to save in the file_to_convert folder: ", ".json")
-    generate_postman_collection(source_file, destination_file)
+    collection = generate_postman_collection(source_file)
+    save_json(destination_file, collection)
     print(f"{GREEN_TEXT}Conversion from JMX suite to Postman Collection completed successfully!{RESET_TEXT}")
 
 
