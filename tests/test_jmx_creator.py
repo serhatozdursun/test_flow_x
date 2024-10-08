@@ -1,5 +1,4 @@
 import os
-from lxml import etree
 
 from jmx.jmx_creator import create_jmx_file, create_response_assertion, create_http_sampler
 
