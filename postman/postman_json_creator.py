@@ -1,208 +1,339 @@
 import os
-
+import json
+from helper.file_utils import file_write
 from helper.id_utils import generate_uuid, generate_id
 from jmx.jmx_reader import get_test_plan
-import json
+import logging
+
+# Constants
+BODY_KEY = "body"
+URL_KEY = "url"
+RAW_KEY = "raw"
+QUERY_KEY = "query"
+
+logging.basicConfig(level=logging.ERROR)
 
 
-def generate_postman_collection(file_path):
+def create_postman_collection(source_file: str, output_path: str) -> None:
+    """
+    Create a Postman collection by converting a JMX file.
+
+    Args:
+        source_file (str): The name of the source JMX file.
+        output_path (str): The path where the Postman collection will be saved.
+    """
+    current_file_dir = os.path.dirname(__file__)
+    parent_folder_path = os.path.abspath(os.path.join(current_file_dir, os.pardir))
+    jmeter_jmx_path_final = os.path.join(parent_folder_path, "file_to_convert",
+                                         f"{source_file}.jmx") if not os.path.exists(source_file) else source_file
+
+    if not output_path.endswith(".json"):
+        output_path = os.path.join(parent_folder_path, f"out/{output_path}.json")
+
+    collection = generate_postman_collection(jmeter_jmx_path_final)
+    save_json(output_path, collection)
+
+
+def generate_postman_collection(file_path: str) -> dict:
+    """
+    Generate a Postman collection from a JMX test plan.
+
+    Args:
+        file_path (str): The path to the JMX file.
+
+    Returns:
+        dict: A dictionary representing the Postman collection.
+    """
     jmx_data = get_test_plan(file_path)
     postman_collection = generate_info(jmx_data)
     items = extract_items(jmx_data)
 
     # Adding items to the collection
     postman_collection['item'] = items
-
     return postman_collection
 
 
-def generate_info(jmx_data: dict):
-    collection_name = jmx_data["name"]
+def generate_info(jmx_data: dict) -> dict:
+    """
+    Generate the info section of the Postman collection.
+
+    Args:
+        jmx_data (dict): The JMX data.
+
+    Returns:
+        dict: A dictionary containing the collection info.
+    """
     return {
         "info": {
             "_postman_id": generate_uuid(),
-            "name": collection_name,
+            "name": jmx_data["name"],
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
             "_exporter_id": generate_id()
         }
     }
 
 
-def extract_items(jmx_data: dict):
+def extract_items(jmx_data: dict) -> list:
+    """
+    Extract items from JMX data.
+
+    Args:
+        jmx_data (dict): The JMX data.
+
+    Returns:
+        list: A list of extracted items for the Postman collection.
+    """
     items = []
-    jmx_items = jmx_data['items']
-
-    for jmx_item in jmx_items:
+    for jmx_item in jmx_data['items']:
         item_data = jmx_item["item"]
-        item_name = item_data["name"]
-
-        # Prepare the structure for the Postman item
         postman_item = {
-            "name": item_name,
+            "name": item_data["name"],
             "item": extract_sub_items(item_data)  # Recursively extract sub-controller items
         }
         items.append(postman_item)
-
     return items
 
 
-def extract_sub_items(item_data: dict):
-    sub_items = []
-    if "requests" in item_data:
-        requests = item_data["requests"]
-        for request in requests:
-            postman_request = {
-                "name": request["name"],
-                "request": {
-                    "auth": {"type": None},  # No auth type specified in the provided JMX
-                    "method": request["method"],
-                    "header": [],  # No headers provided in the original structure
-                    "url": generate_url(request),  # Generate URL including query parameters
-                    "body": generate_body(request) if request["method"] in ["POST", "PUT"] else None
-                    # Handle POST/PUT body
-                },
-                "response": []
-            }
-            # Add event handling for "test" and "prerequest" if needed
-            postman_request["event"] = generate_events()
-            sub_items.append(postman_request)
+def extract_sub_items(item_data: dict) -> list:
+    """
+    Extract sub-items (requests) from item data and check for duplicates.
 
-    # Handle sub-controllers recursively
-    if "sub_controller" in item_data:
-        for sub_controller in item_data["sub_controller"]:
-            sub_item = sub_controller["item"]
-            sub_items.append({
-                "name": sub_item["name"],
-                "item": extract_sub_items(sub_item)
-            })
+    Args:
+        item_data (dict): The item data containing requests.
+
+    Returns:
+        list: A list of sub-items (requests) for the Postman collection.
+    """
+    sub_items = []
+    seen_requests = set()
+
+    if "requests" in item_data:
+        for request in item_data["requests"]:
+            request_name = request["name"]
+
+            if not add_unique_request_to_collection(request_name, seen_requests, sub_items, request, item_data["name"]):
+                continue
 
     return sub_items
 
 
-def is_special_argument(value: str) -> bool:
-    """Check if the argument contains newline or quotes, and thus should be moved to the body."""
-    return "\r\n" in value or "\"" in value
+def add_unique_request_to_collection(request_name, seen_requests, sub_items, request, item_name):
+    """
+    Check for duplicates and add a unique request to the collection.
 
+    Args:
+        request_name (str): The name of the request.
+        seen_requests (set): Set of already processed request names.
+        sub_items (list): The list of current sub-items (requests) in the collection.
+        request (dict): The request data.
+        item_name (str): The name of the item the request belongs to.
 
-def generate_url(request: dict):
-    """Generate the URL structure for a request based on path and arguments."""
-    raw_url = request["path"]
-    query_params = []
+    Returns:
+        bool: True if the request is added, False if it is skipped (duplicate).
+    """
+    if request_name in seen_requests:
+        logging.warning(f"Duplicate request '{request_name}' detected in '{item_name}'. Skipping.")
+        return False
 
-    # Assuming request["arguments"] contains only query parameters, not body data
-    for key, value in request.get("arguments", {}).items():
-        if key == "body":  # Move the 'body' argument to the query instead of body
-            query_params.append({
-                "key": key,
-                "value": value
-            })
-        elif not is_special_argument(value) and key != "url":  # Only add to query if not special
-            query_params.append({
-                "key": key,
-                "value": value
-            })
-
-    return {
-        "raw": raw_url,  # Assuming path is always raw in the JMX
-        "host": [],  # Host will be extracted from the JMX or Postman environment variables
-        "path": raw_url.split('/'),  # Split the path into an array
-        "query": query_params  # Attach the query parameters
+    body = generate_body(request) if request.get("arguments", {}).get(BODY_KEY) is not None else None
+    postman_request = {
+        "name": request_name,
+        "request": {
+            "auth": {"type": None},
+            "method": request["method"],
+            "header": [],  # No headers provided in the original structure
+            "url": generate_url(request),
+            "body": body
+        },
+        "response": [],
+        "event": generate_events()
     }
 
-
-def generate_body(request: dict):
-    """Generate the body for POST requests."""
-    if request.get("arguments"):
-        body_data = {}
-
-        # Check if "body" exists in arguments and if it's a string (raw JSON).
-        if "body" in request["arguments"] and isinstance(request["arguments"]["body"], str):
-            # Directly use the "body" value as raw JSON.
-            return {
-                "mode": "raw",
-                "raw": request["arguments"]["body"],
-                "options": {
-                    "raw": {
-                        "language": "json"
-                    }
-                }
-            }
-        else:
-            # Otherwise, process arguments normally as JSON.
-            for key, value in request["arguments"].items():
-                if key == "url":
-                    # If the argument is 'url', it should be in the body and not in the query.
-                    body_data[key] = value
-                elif isinstance(value, dict):  # If the argument is already JSON, format it as raw
-                    body_data[key] = json.dumps(value, indent=4)
-                else:
-                    body_data[key] = value
-
-            # Formatting the body as raw JSON
-            return {
-                "mode": "raw",
-                "raw": generate_raw_json(body_data),
-                "options": {
-                    "raw": {
-                        "language": "json"
-                    }
-                }
-            }
-
-    return None
+    sub_items.append(postman_request)
+    seen_requests.add(request_name)
+    return True
 
 
 def generate_events():
-    """Generate the events for pre-request and test scripts."""
+    """
+    Generates events for the Postman request.
+    This could include pre-request and test scripts, for example.
+    """
     return [
         {
             "listen": "test",
             "script": {
-                "type": "text/javascript",
-                "exec": []  # You can add Postman script logic here
-            }
-        },
-        {
-            "listen": "prerequest",
-            "script": {
-                "type": "text/javascript",
-                "exec": []  # You can add pre-request script logic here
+                "exec": [
+                    "pm.test('Response time is less than 200ms', function() { pm.response.to.have.responseTime.lessThan(200); });"],
+                "type": "text/javascript"
             }
         }
     ]
 
 
-def save_json(file_path, data):
-    with open(file_path, 'w') as json_file:
-        json.dump(data, json_file, indent=4)
+def generate_url(request: dict) -> dict:
+    """
+    Generate the URL structure for a Postman request.
 
-    GREEN_TEXT = '\033[92m'
-    print(f'{GREEN_TEXT}Postman collection JSON file created at: {file_path}')
+    Args:
+        request (dict): The request data.
+
+    Returns:
+        dict: A dictionary representing the URL for the Postman request.
+    """
+    raw_url = request["path"]
+    query_params = extract_query_params(request.get("arguments", {}))
+
+    return {
+        "raw": raw_url,
+        "host": [],  # Host will be extracted from the JMX or Postman environment variables
+        "path": raw_url.split('/'),
+        QUERY_KEY: query_params
+    }
 
 
-def create_postman_collection(source_file, output_path):
-    current_file_dir = os.path.dirname(__file__)
-    parent_folder_path = os.path.abspath(os.path.join(current_file_dir, os.pardir))
-    if not os.path.exists(source_file):
-        # Get the parent directory
-        jmeter_jmx_path_final = os.path.join(parent_folder_path, "file_to_convert", f"{source_file}.jmx")
+def extract_query_params(arguments: dict) -> list:
+    """
+    Extract query parameters from request arguments.
+
+    Args:
+        arguments (dict): The arguments containing query parameters.
+
+    Returns:
+        list: A list of query parameter dictionaries.
+    """
+    query_params = []
+    for key, value in arguments.items():
+        if key != BODY_KEY and not is_special_argument(value):
+            query_params.append({"key": key, "value": replace_placeholders(value)})
+    return query_params
+
+
+def is_special_argument(value: str) -> bool:
+    """
+    Check if the argument contains newline or quotes.
+
+    Args:
+        value (str): The argument value to check.
+
+    Returns:
+        bool: True if the argument is special; False otherwise.
+    """
+    return "\r\n" in value or "\"" in value
+
+
+def generate_body(request: dict) -> dict:
+    """
+    Generate the body for POST requests.
+
+    Args:
+        request (dict): The request data.
+
+    Returns:
+        dict: A dictionary representing the body for the Postman request.
+    """
+    arguments = request.get("arguments", {})
+    if BODY_KEY in arguments and isinstance(arguments[BODY_KEY], str):
+        body = generate_raw_json(arguments[BODY_KEY])
+        return {
+            "mode": "raw",
+            "raw": body,
+            "options": {
+                "raw": {
+                    "language": "json"
+                }
+            }
+        }
+
+    body_data = {key: (json.dumps(value, indent=4) if isinstance(value, dict) else value) for key, value in
+                 arguments.items() if key != URL_KEY}
+    body_data[URL_KEY] = arguments.get(URL_KEY)
+
+    return {
+        "mode": "raw",
+        "raw": generate_raw_json(body_data),
+        "options": {
+            "raw": {
+                "language": "json"
+            }
+        }
+    }
+
+
+def generate_raw_json(body_data) -> str:
+    """
+    Convert the body data dictionary or list into a formatted JSON string.
+
+    Args:
+        body_data: The body data to convert.
+
+    Returns:
+        str: A formatted JSON string representation of the body data.
+
+    Raises:
+        ValueError: If body_data is neither a dict nor a list.
+    """
+    try:
+        # If body_data is a string, attempt to convert it to a dictionary
+        if isinstance(body_data, str):
+            body_data = json.loads(body_data)
+
+        # Determine if body_data is a list or a dictionary
+        if isinstance(body_data, dict):
+            # Process dictionary
+            converted_body = {
+                key: replace_placeholders(value) for key, value in body_data.items()
+            }
+        elif isinstance(body_data, list):
+            # Process list
+            converted_body = [
+                {key: replace_placeholders(value) for key, value in item.items()} for item in body_data
+            ]
+        else:
+            raise ValueError("Invalid data type: expected dict or list.")
+
+        # Return formatted JSON string
+        return json.dumps(converted_body, indent=4)
+
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON Decode Error: Invalid JSON string provided. Error: {e}")
+        raise
+    except AttributeError as e:
+        logging.error(f"Attribute Error building the raw json body, the body: {body_data}, \n error:{e}")
+        raise
+    except Exception as e:
+        logging.error(f"Error building the raw json body, the body: {body_data}, \n error:{e}")
+        raise
+
+
+def replace_placeholders(value):
+    """
+    Recursively convert placeholders from ${key} to {{key}}.
+
+    Args:
+        value: The value to process (string, dict, or list).
+
+    Returns:
+        The processed value with placeholders replaced.
+    """
+    if isinstance(value, str):
+        return value.replace("${", "{{").replace("}", "}}")
+    elif isinstance(value, dict):
+        return {k: replace_placeholders(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [replace_placeholders(item) for item in value]
     else:
-        jmeter_jmx_path_final = source_file
-
-    if ".json" not in output_path:
-        output_path = os.path.join(parent_folder_path, f"out/{output_path}.json")
-
-    postman_collection = generate_postman_collection(jmeter_jmx_path_final)
-    save_json(output_path, postman_collection)
+        return value
 
 
-if __name__ == '__main__':
-    file_path = "/Users/sozdursun/PycharmProjects/test_flow_x/file_to_convert/hot_topic.jmx"
-    postman_collection = generate_postman_collection(file_path)
+def save_json(file_path: str, data: dict) -> None:
+    """
+    Save the generated JSON data to a file.
 
-    # Define the output path and file name
-    output_path = os.path.abspath(os.path.join(file_path, os.pardir))
-    file_name = os.path.basename(file_path).replace('.jmx', '_postman_collection.json')
-
-    # Save the Postman collection as a JSON file
-    save_json(output_path, postman_collection)
+    Args:
+        file_path (str): The path where the JSON file will be saved.
+        data (dict): The data to save in JSON format.
+    """
+    file_name = os.path.basename(file_path)
+    file_dir = os.path.dirname(file_path)
+    file_write(file_dir, file_name, data)
