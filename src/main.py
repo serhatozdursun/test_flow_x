@@ -1,5 +1,5 @@
-from jmx.jmx_creator import create_jmx_file
-from postman.postman_json_creator import generate_postman_collection, save_json
+from src.jmx.jmx_creator import create_jmx_file
+from src.postman.postman_json_creator import generate_postman_collection, save_json
 
 # ANSI escape codes for colored text
 YELLOW_TEXT = '\033[93m'

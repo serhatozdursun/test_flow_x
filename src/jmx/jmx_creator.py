@@ -1,7 +1,7 @@
 import json
 import os
-from helper.file_utils import file_write
-from postman.postman_json_reader import read_postman_collection
+from src.helper.file_utils import file_write
+from src.postman.postman_json_reader import read_postman_collection
 from urllib.parse import urlparse, parse_qs
 from typing import Dict, Any
 

@@ -1,8 +1,8 @@
 import os
 import json
-from helper.file_utils import file_write
-from helper.id_utils import generate_uuid, generate_id
-from jmx.jmx_reader import get_test_plan
+from src.helper.file_utils import file_write
+from src.helper.id_utils import generate_uuid, generate_id
+from src.jmx.jmx_reader import get_test_plan
 import logging
 
 # Constants

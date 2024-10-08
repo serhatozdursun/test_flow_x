@@ -4,7 +4,7 @@ import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse, parse_qsl
 from jsonschema import validate, ValidationError
-from helper.file_utils import file_load  # Assuming this function exists and is imported correctly
+from src.helper.file_utils import file_load  # Assuming this function exists and is imported correctly
 
 
 def validate_postman_schema(data: Dict[str, Any], schema_file_path: str = 'data/postman_schema.json') -> None:

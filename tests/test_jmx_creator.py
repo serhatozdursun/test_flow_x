@@ -1,6 +1,6 @@
 import os
 
-from jmx.jmx_creator import create_jmx_file, create_response_assertion, create_http_sampler
+from src.jmx.jmx_creator import create_jmx_file, create_response_assertion, create_http_sampler
 
 # Mock Postman data
 mocked_postman_data = {'test_plan_name': 'Sample', 'test_plan_comments': 'No description found',
@@ -22,10 +22,10 @@ mocked_postman_data = {'test_plan_name': 'Sample', 'test_plan_comments': 'No des
 
 def test_create_jmx_file_valid_input(mocker):
     # Mock the read_postman_collection to return mock_postman_data
-    mock_read_postman_collection = mocker.patch('jmx.jmx_creator.read_postman_collection',
+    mock_read_postman_collection = mocker.patch('src.jmx.jmx_creator.read_postman_collection',
                                                 return_value=mocked_postman_data)
 
-    mock_file_write = mocker.patch('jmx.jmx_creator.file_write')
+    mock_file_write = mocker.patch('src.jmx.jmx_creator.file_write')
 
     # Mock os.path.isfile and os.path.exists to avoid file existence errors
     mock_file_exists = mocker.patch('os.path.exists', return_value=True)

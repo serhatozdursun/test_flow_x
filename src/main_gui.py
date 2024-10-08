@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from jmx.jmx_creator import create_jmx_file
-from postman.postman_json_creator import create_postman_collection
+from src.jmx.jmx_creator import create_jmx_file
+from src.postman.postman_json_creator import create_postman_collection
 import webbrowser
 
 
