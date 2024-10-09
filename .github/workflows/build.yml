@@ -1,0 +1,41 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install tox and any other packages
+        run: pip install tox
+      - name: Run tox
+        run: tox -e py
+      # Wait and check for coverage.xml
+      - name: Wait for coverage.xml
+        run: |
+          echo "Waiting for coverage.xml to be created..."
+          timeout=0
+          while [ ! -f coverage.xml ]; do
+            sleep 2
+            timeout=$((timeout + 1))
+            if [ $timeout -gt 30 ]; then
+              echo "coverage.xml not found after waiting 60 seconds. Exiting."
+              exit 1
+            fi
+          done
+          echo "coverage.xml found!"
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

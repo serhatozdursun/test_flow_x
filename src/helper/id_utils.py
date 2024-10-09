@@ -1,4 +1,4 @@
-import random
+import secrets
 import uuid
 
 
@@ -7,4 +7,4 @@ def generate_uuid():
 
 
 def generate_id():
-    return f"{random.randint(10000000, 99999999)}"
+    return f"{secrets.randbelow(99999999 - 10000000 + 1) + 10000000}"

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from jmx.jmx_creator import create_jmx_file
-from postman.postman_json_creator import create_postman_collection
+from src.jmx.jmx_creator import create_jmx_file
+from src.postman.postman_json_creator import create_postman_collection
 import webbrowser
 
 
@@ -57,10 +57,10 @@ def create_gui():
     options = [
         "1. Postman Collection => JMX",
         "2. JMX => Postman Collection",
-        "3. Postman Collection => K6 (unsupported feature, WIP)",
-        "4. K6 => Postman Collection (unsupported feature, WIP)",
-        "5. JMX => K6 (unsupported feature, WIP)",
-        "6. K6 => JMX (unsupported feature, WIP)"
+    #    "3. Postman Collection => K6 (unsupported feature, WIP)",
+    #    "4. K6 => Postman Collection (unsupported feature, WIP)",
+    #    "5. JMX => K6 (unsupported feature, WIP)",
+    #    "6. K6 => JMX (unsupported feature, WIP)"
     ]
 
     tk.Label(root, text="Select Conversion Type", font=("Arial", 14)).pack(pady=10)
@@ -94,7 +94,7 @@ def create_gui():
     website_link.pack(pady=5)
     website_link.bind("<Button-1>", lambda e: open_link("https://serhatozdursun.com/"))
 
-    root.geometry("500x400")
+    root.geometry("400x250")
     root.mainloop()
 
 

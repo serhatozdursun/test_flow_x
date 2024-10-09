@@ -32,6 +32,7 @@ You will be presented with the following conversion options:
 
 ## Postman Collection -> JMX
 * JMX -> Postman Collection
+* Postman Collection -> JMX
 * Postman Collection -> K6 (unsupported feature, WIP)
 * K6 -> Postman Collection (unsupported feature, WIP)
 * JMX -> K6 (unsupported feature, WIP)
