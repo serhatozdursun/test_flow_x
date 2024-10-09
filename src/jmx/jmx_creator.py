@@ -141,7 +141,7 @@ def create_jmx_file(source_file: str, jmx_file: str) -> None:
     """
     postman_json_path_final = ""
     current_file_dir = os.path.dirname(__file__)
-    parent_folder_path = os.path.abspath(os.path.join(current_file_dir, os.pardir))
+    parent_folder_path = os.path.abspath(os.path.join(current_file_dir, '..', '..'))  # Move up two levels
 
     # Determine the final path of the Postman collection
     if not os.path.exists(source_file):
@@ -193,7 +193,7 @@ def create_jmx_file(source_file: str, jmx_file: str) -> None:
         file_name = os.path.basename(jmx_file)
     else:
         file_name = f"{jmx_file}.jmx"
-        output_path = os.path.join(parent_folder_path, "out")
+        output_path = os.path.join( os.path.abspath(os.path.join(current_file_dir, '..', '..')), "out")
 
     # Write the generated JMX content to the file
     file_write(output_path, file_name, jmx_content)

@@ -1,6 +1,9 @@
+import json
 import os
 
-from src.jmx.jmx_creator import create_jmx_file, create_response_assertion, create_http_sampler
+import pytest
+
+from src.jmx.jmx_creator import create_jmx_file, create_response_assertion, create_http_sampler, create_generic_controller_xml
 
 # Mock Postman data
 mocked_postman_data = {'test_plan_name': 'Sample', 'test_plan_comments': 'No description found',
@@ -49,7 +52,152 @@ def test_create_jmx_file_valid_input(mocker):
 
     # Assert that the file_exists was called
     mock_file_exists.assert_called_once()
+def test_create_generic_controller_xml_request(mocker):
+    # Mock the controller dictionary with 'type' as 'request'
+    controller = {
+        'type': 'request',
+        'name': 'Test Request Controller',
+        'children': []  # No children for this test case
+    }
 
+    # Use mocker to mock create_http_sampler
+    mock_create_http_sampler = mocker.patch('src.jmx.jmx_creator.create_http_sampler')
+
+    # Set a mock return value for create_http_sampler
+    mock_create_http_sampler.return_value = "<HttpSampler guiclass='HttpSamplerGui' testclass='HttpSampler' testname='Test Request Controller'/>"
+
+    # Call the function
+    result = create_generic_controller_xml(controller)
+
+    # Assertions
+    mock_create_http_sampler.assert_called_once_with(controller)  # Verify that create_http_sampler was called
+    expected_xml = "<HttpSampler guiclass='HttpSamplerGui' testclass='HttpSampler' testname='Test Request Controller'/>"
+    assert result == expected_xml  # Check that the returned XML matches the expected output
+def test_create_jmx_file_with_nonexistent_source_file(mocker):
+    # Mock the os.path.exists function to simulate that the source file does not exist
+    mock_exists = mocker.patch('os.path.exists', return_value=False)
+
+    # Mock other required functions
+    mock_read_postman_collection = mocker.patch('src.jmx.jmx_creator.read_postman_collection')
+    mock_file_write = mocker.patch('src.jmx.jmx_creator.file_write')
+
+    # Set up mock data for read_postman_collection
+    mock_read_postman_collection.return_value = {
+        'test_plan_name': 'Test Plan',
+        'test_fragment_controller': {
+            'name': 'Test Fragment',
+            'generic_controllers': []
+        }
+    }
+
+    # Set the source file name that does not exist
+    source_file = 'non_existent_file'
+    jmx_file = 'test.jmx'
+
+    # Fix the way to calculate the parent folder path
+    current_file_dir = os.path.dirname(__file__)  # This will be the current directory of the test file
+    parent_folder_path = os.path.abspath(os.path.join(current_file_dir, '..'))  # Go one directory up
+    expected_postman_json_path_final = os.path.join(parent_folder_path, "file_to_convert", f"{source_file}.json")
+
+    # Call the function
+    create_jmx_file(source_file, jmx_file)
+
+    # Assertions
+    mock_exists.assert_called_once_with(source_file)  # Ensure os.path.exists was called with the correct source file
+    assert expected_postman_json_path_final == os.path.join(parent_folder_path, "file_to_convert", f"{source_file}.json")
+
+    # Ensure that read_postman_collection and file_write were called
+    mock_read_postman_collection.assert_called_once_with(expected_postman_json_path_final)
+    mock_file_write.assert_called_once()
+
+def test_create_jmx_file_file_not_found(mocker):
+    # Arrange
+    source_file = "non_existent_file"
+    jmx_file = "output_jmx"
+
+    # Mock read_postman_collection to raise FileNotFoundError
+    mocker.patch("src.jmx.jmx_creator.read_postman_collection", side_effect=FileNotFoundError)
+
+    # Act & Assert
+    with pytest.raises(FileNotFoundError):
+        create_jmx_file(source_file, jmx_file)
+
+def test_create_jmx_file_else_block(mocker):
+    # Arrange
+    source_file = "existing_file"
+    jmx_file = "output_file"
+
+    # Mock the existence of the file to return True (i.e., file exists)
+    mocker.patch("os.path.exists", return_value=True)
+
+    # Mock the reading of the Postman collection (since we're testing the else block)
+    mocker.patch("src.jmx.jmx_creator.read_postman_collection", return_value={"test_plan_name": "Test Plan", "test_fragment_controller": {}})
+
+    # Mock the file_write function (to avoid actual file I/O)
+    mock_file_write = mocker.patch("src.jmx.jmx_creator.file_write")
+
+    mock_read_postman_collection = mocker.patch('src.jmx.jmx_creator.read_postman_collection',
+                                                return_value=mocked_postman_data)
+    # Act
+    create_jmx_file(source_file, jmx_file)
+
+    # Assert the output path and file name are correctly set
+    expected_output_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), "out")
+    expected_file_name = f"{jmx_file}.jmx"
+
+    mock_read_postman_collection.assert_called_once_with(source_file)
+
+    # Verify that file_write was called with the correct parameters
+    mock_file_write.assert_called_once_with(expected_output_path, expected_file_name, mocker.ANY)
+
+def test_create_jmx_file_invalid_json(mocker):
+    # Arrange
+    source_file = "invalid_json_file"
+    jmx_file = "output_jmx"
+
+    # Mock read_postman_collection to raise JSONDecodeError
+    mocker.patch("src.jmx.jmx_creator.read_postman_collection", side_effect=json.JSONDecodeError("Invalid JSON", "doc", 0))
+
+    # Act & Assert
+    with pytest.raises(json.JSONDecodeError):
+        create_jmx_file(source_file, jmx_file)
+
+def test_create_generic_controller_xml_with_child(mocker):
+    # Mock the controller dictionary with a child controller
+    controller = {
+        'type': 'generic_controller',
+        'name': 'Parent Controller',
+        'children': [
+            {
+                'type': 'request',
+                'name': 'Child Request Controller',
+                'children': []  # No further children
+            }
+        ]
+    }
+
+    # Mock create_http_sampler to simulate 'request' type child controller
+    mock_create_http_sampler = mocker.patch('src.jmx.jmx_creator.create_http_sampler')
+    mock_create_http_sampler.return_value = "<HttpSampler guiclass='HttpSamplerGui' testclass='HttpSampler' testname='Child Request Controller'/>"
+
+    # Mock the recursive call to create_generic_controller_xml for child controllers
+    mock_create_generic_controller_xml = mocker.patch('src.jmx.jmx_creator.create_generic_controller_xml')
+    mock_create_generic_controller_xml.return_value = "<GenericController guiclass='LogicControllerGui' testclass='GenericController' testname='Child Request Controller'/>"
+
+    # Call the function
+    result = create_generic_controller_xml(controller)
+
+    # Assertions
+    # Check that create_http_sampler was called for the 'request' child controller
+    mock_create_http_sampler.assert_called_once_with(controller['children'][0])
+
+    # Ensure the result includes the expected XML
+    expected_xml = """
+    <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Parent Controller"/>
+    <hashTree>
+    <HttpSampler guiclass='HttpSamplerGui' testclass='HttpSampler' testname='Child Request Controller'/></hashTree>
+    """
+    assert result.strip() == expected_xml.strip()
 
 def test_create_response_assertion():
     # Test data
@@ -79,6 +227,47 @@ def test_create_response_assertion():
     # Assert the result matches the expected output
     assert result.strip() == expected_xml.strip()
 
+def test_create_http_sampler_with_status_200_assertion(mocker):
+    # Mock the create_response_assertion function
+    mock_create_response_assertion = mocker.patch('src.jmx.jmx_creator.create_response_assertion')
+    mock_create_response_assertion.return_value = "<ResponseAssertion guiclass='ResponseAssertionGui' testclass='ResponseAssertion' testname='test_name'/>"
+
+    # Mock the request dictionary with 'tests' containing the response assertion condition
+    request = {
+        'name': 'Test Request',
+        'method': 'GET',
+        'raw_url': 'http://example.com/api/v1/resource',
+        'tests': [
+            {
+                'script': "pm.response.to.have.status(200)"  # This triggers the response assertion
+            }
+        ]
+    }
+
+    # Call the function
+    result = create_http_sampler(request)
+
+    # Check that create_response_assertion was called with the correct arguments
+    mock_create_response_assertion.assert_called_once_with('Test Request', '200')
+
+    # Check that the generated XML contains the expected response assertion
+    expected_xml = """  
+    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Test Request" enabled="true">
+        <stringProp name="HTTPSampler.path">${tests_url}/api/v1/resource</stringProp>
+        <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+        <stringProp name="HTTPSampler.method">GET</stringProp>
+        <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments">
+            
+          </collectionProp>
+        </elementProp>
+    </HTTPSamplerProxy>
+    <hashTree>
+    <ResponseAssertion guiclass='ResponseAssertionGui' testclass='ResponseAssertion' testname='test_name'/></hashTree>
+    """
+    assert result.strip() == expected_xml.strip()
 
 def test_basic_http_sampler():
     """Test basic HTTP sampler generation without query params or assertions."""
