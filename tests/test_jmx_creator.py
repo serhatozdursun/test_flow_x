@@ -227,7 +227,8 @@ def test_create_response_assertion():
     # Assert the result matches the expected output
     assert result.strip() == expected_xml.strip()
 
-def test_create_http_sampler_with_status_200_assertion(mocker):
+
+def test_create_http_sampler_with_non_200_status_assertion(mocker):
     # Mock the create_response_assertion function
     mock_create_response_assertion = mocker.patch('src.jmx.jmx_creator.create_response_assertion')
     mock_create_response_assertion.return_value = "<ResponseAssertion guiclass='ResponseAssertionGui' testclass='ResponseAssertion' testname='test_name'/>"
@@ -239,7 +240,7 @@ def test_create_http_sampler_with_status_200_assertion(mocker):
         'raw_url': 'http://example.com/api/v1/resource',
         'tests': [
             {
-                'script': "pm.response.to.have.status(200)"  # This triggers the response assertion
+                'script': "pm.response.to.have.status(500)"  # This triggers a different status code
             }
         ]
     }
@@ -247,10 +248,10 @@ def test_create_http_sampler_with_status_200_assertion(mocker):
     # Call the function
     result = create_http_sampler(request)
 
-    # Check that create_response_assertion was called with the correct arguments
-    mock_create_response_assertion.assert_called_once_with('Test Request', '200')
+    # Check that create_response_assertion was not called (since status is not 200)
+    mock_create_response_assertion.assert_not_called()
 
-    # Check that the generated XML contains the expected response assertion
+    # Check that the generated XML does not contain a response assertion
     expected_xml = """  
     <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Test Request" enabled="true">
         <stringProp name="HTTPSampler.path">${tests_url}/api/v1/resource</stringProp>
@@ -265,9 +266,10 @@ def test_create_http_sampler_with_status_200_assertion(mocker):
         </elementProp>
     </HTTPSamplerProxy>
     <hashTree>
-    <ResponseAssertion guiclass='ResponseAssertionGui' testclass='ResponseAssertion' testname='test_name'/></hashTree>
+    </hashTree>
     """
     assert result.strip() == expected_xml.strip()
+
 
 def test_basic_http_sampler():
     """Test basic HTTP sampler generation without query params or assertions."""
