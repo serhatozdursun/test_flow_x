@@ -71,8 +71,6 @@ def test_file_write_load_existing_content(mocker):
 
 def test_file_write_file_not_found_on_load(mocker):
     """Test file_write raises FileNotFoundError when file_content is None but file doesn't exist."""
-    mock_exists = mocker.patch('os.path.exists', side_effect=[True, False])
-
     with pytest.raises(FileNotFoundError, match='File not found'):
         file_write('some/path', 'file.txt', None)
 
@@ -93,6 +91,7 @@ def test_file_write_remove_existing_file(mocker):
     mock_remove.assert_called_once_with(os.path.join(file_path, file_name))
     mock_open.assert_called_once_with(os.path.join(file_path, file_name), 'w')
     mock_open().write.assert_called_once_with(file_content)
+    assert mock_exists.call_count == 2
 
 
 def test_file_write_json_serialization(mocker):
@@ -131,3 +130,4 @@ def test_file_write_fallback_to_str(mocker):
     file_write(file_path, file_name, file_content)
 
     mock_open.assert_called_once_with(os.path.join(file_path, file_name), 'w')
+    assert mock_exists.call_count == 2
