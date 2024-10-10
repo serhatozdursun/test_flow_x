@@ -22,10 +22,6 @@ def parse_jmx_file(file_path: str) -> Optional[etree._Element]:
     except etree.XMLSyntaxError as e:
         logging.error(f"Error parsing the JMX file: {e}")
         raise
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        raise
-    return None
 
 
 def extract_http_arguments(test_element: etree._Element) -> Dict[str, str]:

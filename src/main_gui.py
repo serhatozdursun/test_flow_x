@@ -5,7 +5,7 @@ from src.postman.postman_json_creator import create_postman_collection
 import webbrowser
 
 
-def handle_conversion(conversion_type, source_ext, source_desc, dest_ext, dest_desc, conversion_func):
+def handle_conversion(source_ext, source_desc, dest_ext, dest_desc, conversion_func):
     """
     Handles the file selection and conversion process for a given conversion type.
 

@@ -44,7 +44,7 @@ def test_create_jmx_file_valid_input(mocker):
 
     # Assert that file_write was called with the correct arguments
     # Get the arguments passed to file_write
-    args, kwargs = mock_file_write.call_args
+    args, _ = mock_file_write.call_args
 
     # Assert that the output path is correct
     assert os.path.abspath(os.path.join(jmx_file, os.pardir)) == args[0]  # output_path
