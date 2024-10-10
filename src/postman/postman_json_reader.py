@@ -15,9 +15,7 @@ def validate_postman_schema(data: Dict[str, Any], schema_file_path: str = 'data/
         schema = json.loads(file_load(schema_file_path))
         validate(instance=data, schema=schema)
     except ValidationError as e:
-        raise Exception(f"Error: The provided file does not conform to the Postman Collection schema. \n {e}")
-    except Exception as e:
-        raise Exception(f"Error loading or validating schema: {e}")
+        raise ValidationError(f"Error: The provided file does not conform to the Postman Collection schema. \n {e}")
 
 
 def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
@@ -25,7 +23,7 @@ def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
     Reads a Postman collection from a JSON file and validates it against the schema.
     """
     if not os.path.isfile(file_path):
-        raise Exception(f"Error: The file '{file_path}' does not exist.")
+        raise FileNotFoundError(f"Error: The file '{file_path}' does not exist.")
 
     data: Dict[str, Any] = {}
     try:
@@ -33,9 +31,6 @@ def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
             data = json.load(json_file)
     except json.JSONDecodeError as e:
         print(f"Error: Failed to decode JSON - {e}")
-        return None
-    except Exception as e:
-        print(f"Error: {e}")
         return None
 
     validate_postman_schema(data)
