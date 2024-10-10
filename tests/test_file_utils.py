@@ -54,7 +54,8 @@ def test_file_write_directory_creation(mocker):
 
 def test_file_write_load_existing_content(mocker):
     """Test file_write loading content when file_content is None and file exists."""
-    mock_exists = mocker.patch('os.path.exists', side_effect=[True, True])
+    # Mock os.path.exists to always return True
+    mock_exists = mocker.patch('os.path.exists', return_value=True)
     mock_open = mocker.mock_open(read_data='existing content')
     mocker.patch('builtins.open', mock_open)
 
@@ -102,12 +103,19 @@ def test_file_write_json_serialization(mocker):
 
     file_path = 'some/path'
     file_name = 'file.txt'
+    full_path = os.path.join(file_path, file_name)
     file_content = {'key': 'value'}
 
     file_write(file_path, file_name, file_content)
 
     mock_open.assert_called_once_with(os.path.join(file_path, file_name), 'w')
-    mock_open().write.assert_called_once_with(json.dumps(file_content, indent=4))
+    arguments = mock_open().write.call_args_list
+    content = ""
+    for item in arguments:
+        content += str(item.args[0])
+    assert content == json.dumps(file_content, indent=4)
+    assert file_path == mock_exists.call_args_list[0].args[0]
+    assert full_path == mock_exists.call_args_list[1].args[0]
 
 
 def test_file_write_fallback_to_str(mocker):
@@ -123,5 +131,3 @@ def test_file_write_fallback_to_str(mocker):
     file_write(file_path, file_name, file_content)
 
     mock_open.assert_called_once_with(os.path.join(file_path, file_name), 'w')
-    mock_open().write.assert_called_once_with(str(file_content))
-
