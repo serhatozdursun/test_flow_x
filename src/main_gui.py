@@ -63,8 +63,8 @@ def perform_conversion(conversion_id):
     :param conversion_id: ID representing the conversion type.
     """
     conversion_mapping = {
-        '1': lambda: handle_conversion('json', 'Postman Collection JSON', 'jmx', 'JMX', create_jmx_file),
-        '2': lambda: handle_conversion('jmx', 'JMeter JMX', 'json', 'Postman Collection JSON', create_postman_collection)
+        '1': lambda: handle_conversion('json', 'Postman Collection', 'jmx', 'JMX', create_jmx_file),
+        '2': lambda: handle_conversion('jmx', 'JMeter JMX', 'json', 'Postman Collection', create_postman_collection)
     }
 
     unsupported_conversions = ['3', '4', '5', '6']

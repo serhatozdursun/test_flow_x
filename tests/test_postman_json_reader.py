@@ -15,7 +15,7 @@ from src.postman.postman_json_reader import (
 )
 
 MOCK_SCHEMA = {
-    "id": "http://example.com/example.json",
+    "id": "https://example.com/example.json",
     "type": "object",
     "required": ["key"],
     "properties": {
@@ -112,7 +112,7 @@ def test_extract_request_data():
         "name": "Request 1",
         "request": {
             "method": "POST",
-            "url": {"raw": "http://example.com"},
+            "url": {"raw": "https://example.com"},
             "body": {"mode": "raw", "raw": "some body content"}
         }
     }
@@ -121,12 +121,12 @@ def test_extract_request_data():
 
     assert result["name"] == "Request 1"
     assert result["method"] == "POST"
-    assert result["raw_url"] == "http://example.com"
+    assert result["raw_url"] == "https://example.com"
 
 
 # Test extract_query_params
 def test_extract_query_params():
-    raw_url = "http://example.com?param1=value1&param2=value2"
+    raw_url = "https://example.com?param1=value1&param2=value2"
 
     result = extract_query_params(raw_url)
 
