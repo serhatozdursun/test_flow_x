@@ -109,7 +109,6 @@ def extract_request_data(item: Dict[str, Any], controller_id: str, parent_id: Op
     raw_url = item["request"].get("url", {}).get("raw", "No URL")
     raw_url = re.sub(r'{{', '${', raw_url)
     raw_url = re.sub(r'}}', '}', raw_url)
-    raw_url = re.sub(r'\.', '_', raw_url)
     name = item.get("name", "Unnamed Request").replace("&", "and")
 
     return {
