@@ -5,19 +5,40 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse, parse_qsl
 from jsonschema import validate, ValidationError
 from src.helper.file_utils import file_load  # Assuming this function exists and is imported correctly
+from pathlib import Path
+
+
+def get_schema_path(relative_path: str) -> Path:
+    """
+    Constructs an absolute path to the schema file based on the current file's directory.
+
+    :param relative_path: Relative path to the schema file from the project's root.
+    :return: Absolute Path to the schema file.
+    """
+    current_file_dir = Path(__file__).resolve().parent
+    project_root = current_file_dir.parents[1]  # Adjust depth based on folder structure
+    return project_root / relative_path
 
 
 def validate_postman_schema(data: Dict[str, Any], schema_file_path: str = 'data/postman_schema.json') -> None:
     """
     Validates a Postman collection against a JSON schema.
+
+    :param data: The Postman collection data to validate.
+    :param schema_file_path: Path to the schema file.
+    :raises ValidationError: If the data does not conform to the schema.
     """
     try:
-        schema = json.loads(file_load(schema_file_path))
+        schema_path = get_schema_path(schema_file_path)
+        schema = json.loads(file_load(str(schema_path)))  # Assuming file_load returns JSON content as string
         validate(instance=data, schema=schema)
     except ValidationError as e:
-        raise Exception(f"Error: The provided file does not conform to the Postman Collection schema. \n {e}")
-    except Exception as e:
-        raise Exception(f"Error loading or validating schema: {e}")
+        raise ValidationError(
+            f"Schema validation error: The provided file does not conform to the Postman Collection schema.\nDetails: {e}")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Schema file not found at: {schema_path}")
+    except json.JSONDecodeError:
+        raise ValueError(f"Invalid JSON format in schema file: {schema_path}")
 
 
 def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
@@ -25,7 +46,7 @@ def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
     Reads a Postman collection from a JSON file and validates it against the schema.
     """
     if not os.path.isfile(file_path):
-        raise Exception(f"Error: The file '{file_path}' does not exist.")
+        raise FileNotFoundError(f"Error: The file '{file_path}' does not exist.")
 
     data: Dict[str, Any] = {}
     try:
@@ -33,9 +54,6 @@ def read_postman_collection(file_path: str) -> Optional[Dict[str, Any]]:
             data = json.load(json_file)
     except json.JSONDecodeError as e:
         print(f"Error: Failed to decode JSON - {e}")
-        return None
-    except Exception as e:
-        print(f"Error: {e}")
         return None
 
     validate_postman_schema(data)
@@ -91,7 +109,6 @@ def extract_request_data(item: Dict[str, Any], controller_id: str, parent_id: Op
     raw_url = item["request"].get("url", {}).get("raw", "No URL")
     raw_url = re.sub(r'{{', '${', raw_url)
     raw_url = re.sub(r'}}', '}', raw_url)
-    raw_url = re.sub(r'\.', '_', raw_url)
     name = item.get("name", "Unnamed Request").replace("&", "and")
 
     return {
