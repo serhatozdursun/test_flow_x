@@ -30,7 +30,7 @@ MOCK_SCHEMA = {
 def test_get_schema_path():
     relative_path = "schemas/postman_schema.json"
     result = get_schema_path(relative_path)
-    expected_path = Path(__file__).resolve().parent.parents[1] / relative_path
+    expected_path = Path(__file__).resolve().parent.parents[0] / relative_path
     assert result == expected_path
 
 
