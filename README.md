@@ -1,3 +1,7 @@
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=serhatozdursun_test_flow_x)](https://sonarcloud.io/summary/new_code?id=serhatozdursun_test_flow_x) </br>
+[![CodeQL Static Code Analysis](https://github.com/serhatozdursun/test_flow_x/actions/workflows/codeql.yml/badge.svg)](https://github.com/serhatozdursun/test_flow_x/actions/workflows/codeql.yml) </br>
+[![Python Tests](https://github.com/serhatozdursun/test_flow_x/actions/workflows/python-tests.yml/badge.svg)](https://github.com/serhatozdursun/test_flow_x/actions/workflows/python-tests.yml)
+
 # Test Flow X
 
 ## Description
