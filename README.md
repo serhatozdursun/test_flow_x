@@ -30,22 +30,18 @@ You can use the application in two modes: Command-line or Graphical User Interfa
 Run the script to select a conversion type and follow the prompts:
 
 ```bash
-python main.py
+python -m src.main_gui
 ```
 You will be presented with the following conversion options:
 
 ## Postman Collection -> JMX
 * JMX -> Postman Collection
 * Postman Collection -> JMX
-* Postman Collection -> K6 (unsupported feature, WIP)
-* K6 -> Postman Collection (unsupported feature, WIP)
-* JMX -> K6 (unsupported feature, WIP)
-* K6 -> JMX (unsupported feature, WIP)
 
 ### GUI Mode
 If you prefer a graphical interface, you can run the application with a user-friendly GUI:
 ```bash
-python main.py
+python python -m src.main_gui
 ```
 After running the command, a window will appear allowing you to choose the conversion type using radio buttons. Select a conversion type and click "Convert". You can use the GUI to select files for conversion or automatically save them to the default directories if a destination is not provided.
 
