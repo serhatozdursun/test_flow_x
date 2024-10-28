@@ -71,8 +71,11 @@ def test_file_write_load_existing_content(mocker):
 
 def test_file_write_file_not_found_on_load(mocker):
     """Test file_write raises FileNotFoundError when file_content is None but file doesn't exist."""
+    path = 'some/path'
+    mock_makedirs = mocker.patch('os.makedirs')
     with pytest.raises(FileNotFoundError, match='File not found'):
-        file_write('some/path', 'file.txt', None)
+        file_write(path, 'file.txt', None)
+    mock_makedirs.assert_called_once_with(path)
 
 
 def test_file_write_remove_existing_file(mocker):
