@@ -22,6 +22,8 @@ To install the necessary dependencies, create a `requirements.txt` file as descr
 pip install -r requirements.txt
 ```
 
+Also you should python-tk installed in you local
+
 ## Usage
 
 You can use the application in two modes: Command-line or Graphical User Interface (GUI).
