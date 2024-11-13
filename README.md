@@ -22,7 +22,7 @@ To install the necessary dependencies, create a `requirements.txt` file as descr
 pip install -r requirements.txt
 ```
 
-Also you should python-tk installed in you local
+Also, you should python-tk installed in you local
 
 ## Usage
 
